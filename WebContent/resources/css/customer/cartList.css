@@ -1,0 +1,86 @@
+@charset "UTF-8";@charset "UTF-8";
+
+/* admin.css */
+.container{
+	display: flex;
+	justify-content: space-between;  
+	align:center;
+   width: 1000%;
+  margin: 0 auto; 
+}
+/* 
+#contents {
+   max-width: 1240px;
+   min-width: 1240px; 
+   width: 100%;
+   margin: 0 auto;
+   min-height: 800px;
+}
+
+#section2{
+	display : flex;
+	justify-content: space-bewtween;  
+}
+
+
+<!-- 좌측메뉴 시작 -->
+#left{
+	width: 12%;
+	margin-top: 20px;
+	height: 100%;
+	border-radius: 10px;
+	margin-right: 50px;
+}
+
+.left_inside{
+	background: lightgray;
+	margin: 0 0 0 0;
+	border-radius: 10px;
+	padding: 10px;
+	box-shadow: 10px 10px 10px 10px rgba(0, 0, 0,0.2);
+	text-align-list: center;
+}
+
+.menubarLeft{
+	margin-left: -40px;
+}
+
+.menubarLeft li{
+	list-style: none;
+	align: left;
+}
+
+.menubarLeft li a{
+	color: black;
+	text-decoration: none;
+}
+
+
+<!-- 우측 내용 시작 -->
+.right_inside {
+	margin-top: 30px;
+	width: 100%;
+}
+
+.table_div{
+	margin-top: 30px;
+}
+
+.table_div table {
+	width: 100%;
+	align: center;
+}
+
+.table_div table th {
+	border: 1px solid black;
+	background: #FDE3E9;
+}
+
+.table_div table th, td {
+	height: 50px;
+	border: 1px solid black;
+	padding-left: 10px;
+	text-align: center;
+}
+/
+ */

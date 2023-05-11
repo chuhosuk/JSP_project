@@ -1,0 +1,411 @@
+< customer에서 1~5번 작업함   >
+
+1. jsp_pj_126 플젝 생성 : new > Dynamic Web Project > Generate web.xml 체크
+2. jar 파일 추가 : WEB-INF/lib/  5개 jar파일 추가
+
+======= html_pj_126(화면설계 버전) => JSP MVC 패턴 개발 버전  ================
+
+3. 각각의 폴더, jsp 파일을 생성후 각각의 html 소스를 붙여넣는다.
+WebContent(루트)
+
+/admin
+/common / 
+/customer / board, join, login, mypage, product
+/resources => 폴더 복사해서 붙여넣기 / css, images, js
+/템플릿
+
+
+4. 템플릿> sample.html 소스의 헤더, 푸터를 잘라서 include(header.jsp, footer.jsp)
+common > header.jsp 단 <%@ page > 지시자 추가
+common > footer.jsp
+common > setting.jsp => path 설정 => EL, JSTL 배운후     
+
+5. main.jsp
+common > main.jsp => main.html 복사해서 메뉴링크 수정  =>  EL, JSTL 배운후         
+                     헤더 : <%@ include file="header.jsp" %>
+                     푸터 : <%@ include file="footer.jsp" %>
+           path : <%@ include file="setting.jsp" %> => EL, JSTL 배운후       
+           
+           
+실행 : http://localhost/jsp_pj_126/common/main.jsp
+  => 헤더/ 푸터 확인/ 이미지 확인            
+  
+main.jsp 복사해서 템플릿 > sample.jsp로 붙여넣는다. header, footer 경로 수정
+< 공통 End  >
+==================================================================
+
+
+
+6. admin> csCenter > board_list.jsp
+
+- ad_productList.html 복사해서 <%@page> 지시자 아래에 jsp에 붙여넣고, 
+- header, footer, leftMenu 분리시킨후 include시킨다.
+- 본문 내용 수정
+
+- 일단 ad_product_list.jsp 페이지 실행해서 메뉴, 이미지 문제 없는지 확인
+===================================================================
+
+
+[ BACKEND : Java Resources > src > 기본 패키지 : pj.mvc.jsp ]
+
+1. DTO - pj.mvc.jsp.dto
+   BoardDTO.java
+   계정생성(아래 8번) -> 테이블생성(아래 9번) -> BoardDTO 멤버변수, setter / getter
+   
+------   
+2. CONTROLLER - pj.mvc.jsp.controller
+   new Servlet > BoardController.java
+   
+   @WebServlet("*.bo") <= 진입시 .do인 요청만 받겠다는 의미, 반드시 do가 아니어도 됨, 
+        customer : *.do   |  admin : *.ad  =>
+    주의사항 : 중복되면 안됨    
+        
+3. common/setting.jsp => path 설정 => 모든 jsp페이지에서 include시키고 ${path}
+                                 : css, header.jsp에서 반영         
+
+실행 => http://localhost/jsp_pj_126/*.bo  
+   => 실행안되는 경우 setting.jsp 에러가 있거나, jar 파일이 없거나, header.jsp에서 잘못준경우
+   
+      또는 url.equsls(잘못준경우) / @WebServlet("잘못준 경우")
+
+---------------------------------------
+
+
+
+4. Service / ServiceImpl  -  pj.mvc.jsp.service
+   BoardService.java : 인터페이스 
+   BoardServiceImpl.java : 인터페이스 구현
+
+5. DAO / DAOImpl -  pj.mvc.jsp.dao
+   BoardDAO.java : 인터페이스
+   BoardDAOImpl.java : 인터페이스 구현
+   
+   싱글톤, context.xml lookup
+   
+   
+6. 게시글 목록
+
+6-1. [ 게시글 991건 발생 및 조회 ]  ////////////////////////////
+
+-- 게시글 입력(1건)
+INSERT INTO mvc_board_tbl(num, title, content, writer, password, readCnt, regDate)
+VALUES(1, '첫번째 게시글', '게시판 작성', '테스터', '1234', 0, sysdate);
+
+SELECT * FROM mvc_board_tbl;
+
+-- 게시글 입력(다건)
+DECLARE  --선언문
+   i NUMBER:= 1;   -- 변수 i에 1을 대입
+BEGIN
+   WHILE i<=991 LOOP
+      INSERT INTO mvc_board_tbl(num, title, content, writer, password, readCnt, regDate)
+      VALUES(i, '글제목'||i, '글내용'||i, '작성자'||i, '1234', 0, sysdate);
+      i := i+1;
+   END LOOP;   
+END;   
+COMMIT;
+
+SELECT * FROM mvc_board_tbl
+ORDER BY num ASC;   
+
+SELECT COUNT(*) FROM mvc_board_tbl;  -- 991
+
+--1   글제목1   글내용1   작성자1   1234   0   2023-03-02 10:24:50.000
+--991   글제목991   글내용991   작성자991   1234   0   2023-03-02 10:24:50.000
+
+-- 게시글 목록 조회
+SELECT * FROM mvc_board_tbl
+  ORDER BY num DESC;   
+  
+-- 1p : 991~982 => rn : 1~10   
+-- 2p : 981~972 => rn : 11~20 
+ 
+-- 1p 1~10번 게시글 가져오기 
+SELECT *
+  FROM(
+   SELECT A.*, rownum AS rn  --  rn : 일련번호 매기기
+     FROM (SELECT * FROM mvc_board_tbl
+           ORDER BY num DESC) A
+    )    
+ WHERE rn BETWEEN 1 AND 10;    
+
+
+6-2. [ 게시글 건수 및 목록조회 로그 ] /////////////////////////////////////////
+
+게시글 목록 처음 실행시 1페이지가 실행되는 경우 1페이지~10페이지를 가져오고 rowNum 991~982 게시글 가져온다
+start => 1
+end => 10
+
+
+[url => /board_list.bo]
+서비스 - 게시글 목록
+=============================
+pageNum : 1
+currentPage : 1
+DAO - boardCnt
+total => 991    // 전체 건수
+startRow : 1    // start
+endRow : 10     // end
+pageCount : 100 // 10페이지의 게시글 건수
+startPage : 1   // 1페이지
+endPage : 10    // 10페이지
+prev : 0
+next : 11
+================================
+start => 1
+end => 10
+DAO - boardList
+sql: SELECT *   FROM(    SELECT A.*, rownum AS rn      FROM (SELECT * FROM mvc_board_tbl            ORDER BY num DESC) A     )     WHERE rn BETWEEN ? AND ?
+
+//////////////////////////////////////////
+7. 댓글
+------------------------------------------
+7-1) board_detailAction.jsp
+댓글입력 <table> 추가
+댓글목록 <table> 추가
+
+jQuery 추가
+// 댓글쓰기
+function comment_add() {
+   alert("comment_add()");
+   
+   // 게시글번호, 작성자, 글내용을 파라미터로 넘김
+   let param = {
+      "board_num": ${dto.num},   // key: value
+      "writer": $('#writer').val(),
+      "content": $('#content').val()
+   }
+   
+   $.ajax({
+      url: "${path}/comment_insert.bo",
+      type: "post",
+      data: param,
+      success: function() { // 댓글쓰기가 완료되면 서버에서 콜백함수 호출
+         $('#writer').val("");   // 작성자 내용을 지움
+         $('#content').val("");  // 글내용을 지움
+         comment_list();   // 댓글목록을 새로 고침
+      },
+      error: function() {
+         alert('comment_add() 오류');
+      }
+   });
+}
+
+// 댓글목록
+function comment_list() {
+   alert("comment_list()");
+   $.ajax({
+      url: "${path}/comment_list.bo",
+      type: "post",
+      data: "num=${dto.num}",
+      success: function(result) { // 서버에서 콜백함수 호출 : comment_list.jsp(컨트롤러에서 forward)의 결과를 result에 담아서 돌아온다. 
+         $('#commentList').html(result);   // 댓글목록을 새로 고침
+      },
+      error: function() {
+         alert('comment_list() 오류');
+      }
+   });
+}
+-------------------------------------------
+
+7-2)
+-- 3) 게시판 댓글 테이블
+DROP TABLE mvc_board_comment_tbl CASCADE CONSTRAINTS;
+CREATE TABLE mvc_board_comment_tbl( 
+   comment_num      NUMBER(7)  PRIMARY KEY,      -- PK, 댓글 일련번호
+   board_num      NUMBER(7)  NOT NULL REFERENCES mvc_board_tbl(num), -- FK, 게시글 번호
+   writer         VARCHAR2(30) NOT NULL,      -- 작성자
+   content         CLOB NOT NULL,            -- 글내용
+   regDate         DATE DEFAULT sysdate         -- 작성일
+); 
+
+7-3) BoardCommentDTO 작성
+
+7-4) comment_list.jsp => 결과페이지이며, 콜백함수의 result에 해당 => board_detailAction.jsp의 <div id="commentList"> </div>에 출력 
+
+<!-- 우측 내용 시작 -->
+   <div id="right">
+      <div class="table_div">
+         <table border="1" width="1000px">
+            <c:forEach var="dto" items="${list}">
+               <tr>
+                  <td>
+                     ${dto.writer}<br>
+                     ${dto.content}<br>
+                  </td>                        
+               </tr>                  
+            </c:forEach>
+         </table>               
+      </div>
+   </div>
+   <!-- 우측 메뉴 종료 -->
+
+
+
+7-5) 게시글 목록에 댓글 건수 출력
+1) BoardDTO에  댓글건수 추가
+private int comment_count;   // 댓글 갯수
+
+2) BoardDAOImpl
+2-1) boardList
+
+   // 게시글 목록
+   @Override
+   public List<BoardDTO> boardList(int start, int end) {
+      System.out.println("DAO - boardList");
+         
+         // 댓글 갯수 미포함
+//         String sql = "SELECT * " + 
+//               "  FROM ( " + 
+//               "   SELECT A.*, rownum AS rn " +  // rn : 일련번호 매기기
+//               "     FROM (SELECT * FROM mvc_board_tbl " + 
+//               "           ORDER BY num DESC) A " + 
+//               "    )    " + 
+//               " WHERE rn BETWEEN ? AND ?";
+         
+         // 댓글 갯수 포함
+         String sql = "SELECT * " + 
+               "  FROM ( " + 
+               "   SELECT A.*, rownum AS rn " +  // rn : 일련번호 매기기
+               "     FROM (SELECT num, title, content, writer, password, readCnt, regDate, " + 
+                        " (SELECT COUNT(*) FROM mvc_board_comment_tbl WHERE board_num = B.num) comment_count " +
+                          "FROM mvc_board_tbl B " +
+                       "WHERE show='y'"   + // 게시판 글삭제시 댓글 안보여주기 위해 show='n'으로 변경 => 삭제처리에서 확인
+               "           ORDER BY num DESC) A " + 
+               "    )    " + 
+               " WHERE rn BETWEEN ? AND ?";
+            
+            
+      dto.setComment_count(rs.getInt("comment_count"));  // 댓글 카운트 추가   
+
+2-2) deleteBoard            
+    // 게시글 삭제처리
+   @Override
+   public void deleteBoard(int num) {
+      System.out.println("DAO - deleteBoard");
+      
+      // String sql = "DELETE FROM mvc_board_tbl WHERE num=?"; => 댓글여부와 무관하게 게시글 삭제
+      String sql = "UPDATE  mvc_board_tbl  SET show='n' WHERE num=? "; // 게시글 삭제시 show='n'으로 수정해서 목록에 안뜨게 함
+      
+   
+2-3) board_list.jsp - 댓글 갯수 추가
+
+   <!-- 게시글이 있으면 -->
+   <c:forEach var="dto" items="${list}">
+      <tr>
+         <!-- 댓글 갯수 -->
+         <c:if test="${dto.comment_count > 0}">
+            [ ${dto.comment_count} ]
+         </c:if>
+
+2-4)  mvc_board_tbl에 show 컬럼 추가
+
+-- 게시글 목록에 삭제된 게시글을 안보여주기 위한 컬럼 추가 : show
+ALTER TABLE mvc_board_tbl ADD show CHAR(1) DEFAULT 'y';                                    
+///////////////////////////////////////////
+   
+6-3. SQL문
+
+-- 조회수 증가
+UPDATE mvc_board_tbl 
+SET readCnt=readCnt+1
+WHERE num=991; 
+
+-- 게시글 상세페이지
+SELECT * FROM mvc_board_tbl
+ WHERE num = 991;
+ 
+-- 비밀번호 인증
+SELECT * FROM mvc_board_tbl
+ WHERE num = 991
+   AND password = '1234';
+   
+-- 게시글 수정  
+UPDATE mvc_board_tbl 
+SET password=1234, title='글제목991_re', content='글내용991_re?' 
+WHERE num=991;  
+
+-- 게시글 삭제
+DELETE FROM mvc_board_tbl 
+WHERE num=991; 
+
+-- 게시글 입력(1건)
+INSERT INTO mvc_board_tbl(num, title, content, writer, password, readCnt, regDate)
+VALUES((SELECT NVL(MAX(num)+1, 1) FROM mvc_board_tbl), '첫번째 게시글', '게시판 작성', '테스터', '1234', 0, sysdate);
+
+SELECT NVL(MAX(num)+1, 1) FROM mvc_board_tbl; -- num이 존재시 최대값+1, 미존재시 1
+
+
+   
+   
+//////////////////////////////////////////////
+
+8. jsp_pj_126 계정 생성 => [시스템 계정(System126)에서 작업]  => DBeaver에서 작업후 F5하면 자동계정생성
+--- 1. 계정생성 : jsp_pj_126 계정생성
+-- create user <계정이름> identified by <계정암호> default tablespace users;
+   create user jsp_pj_126 identified by tiger default tablespace users;
+
+  -- 2. 사용자 권한 부여
+  -- grant [시스템 권한] to [계정];
+   grant connect, resource to jsp_pj_126;
+   grant create view to jsp_pj_126;
+   
+ --  권한취소
+ -- revoke [시스템 권한] from [계정];
+ -- revoke create view from jsp_pj_126;
+   
+--  grant connect, resource,create view to scott;   
+-- 3. 락 해제
+-- alter user <계정이름> account unlock;
+   alter user jsp_pj_126 account unlock;
+ 
+-- 실행결과   
+--User SCOTT이(가) 생성되었습니다.
+--Grant을(를) 성공했습니다.
+--User SCOTT이(가) 변경되었습니다.
+
+
+-----------------------------------------------
+
+9. 테이블생성
+-- jsp_pj_126 계정에서 작업
+
+DROP TABLE  mvc_board_tbl CASCADE  CONSTRAINTS;
+CREATE TABLE mvc_board_tbl(
+    num            NUMBER(7)  PRIMARY KEY,      -- 글번호   
+    title          VARCHAR2(50) NOT NULL,      -- 글제목
+    content         CLOB NOT NULL,            -- 글내용
+    writer         VARCHAR2(30) NOT NULL,      -- 작성자
+    password        VARCHAR2(30) NOT NULL,      -- 수정, 삭제용 비밀번호
+    readCnt         NUMBER(6) DEFAULT 0,        -- 조회수
+    regDate         TIMESTAMP DEFAULT sysdate   -- 가입일
+);
+
+-- 게시글 목록에 삭제된 게시글을 안보여주기 위한 컬럼 추가 : show
+ALTER TABLE mvc_board_tbl ADD show CHAR(1) DEFAULT 'y';   
+SELECT * FROM mvc_board_tbl;  -- 맨뒤에 show 컬럼이 추가되고, 'y'로 insert
+
+
+
+-- CLOB : 대용량 텍스트 자료형
+-- BLOB : 대용량 바이너리 자료형
+
+10. 커넥션풀(DBCP: DataBase Connection Pool 방식) => Servers > Tomcat > context.xml
+=> 톰캣 재설치시 추가해야 하며, 안하면 DB연결이 안된다.
+
+ <!-- jsp_pj_126 / jsp mvc 수업 / name이 식별자이므로 중복되면 에러 -->
+    <Resource
+       author="Container"
+       name="jdbc/jsp_pj_126"
+       type="javax.sql.DataSource"
+       driverClassName="oracle.jdbc.driver.OracleDriver"       
+       url="jdbc:oracle:thin:@localhost:1521:xe"
+       username="jsp_pj_126"
+       password="tiger"
+       maxActive="5"
+       maxWait="1000"
+    />
+
+    =========================================================
+       
+   11. EL, JSTL을 화면에 반영 

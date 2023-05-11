@@ -1,0 +1,134 @@
+1. jsp_pj_126 플젝 생성 : new > Dynamic Web Project > Generate Web.xml 체크
+2. jar 파일 추가 : WEB-INF/lib/ 5개 jar 파일추가
+
+=========html_pj_126(화면설계 버전)=> JSP MVC 패턴 개발 버전==========
+
+3. 각각의 폴더, jsp 파일을 생성후 각각의 html 소스를 붙여넣는다.
+WebContent(루트)
+
+/admin
+/common /
+/customer /board,login,mypage,product
+/resources => 폴더 복사해서 붙여넣기 /css, images, js 
+/탬플릿
+
+
+
+4. 기존 탬플릿 sample.html 소스의 헤더, 푸터를 잘라서 include(header.jsp, footer.jsp)
+common > header.jsp
+common > footer.jsp
+common > setting.jsp => path 설정 => EL, JSTL 배운후
+
+5. main.jsp
+common > main.jsp => main.html 복사해서 메뉴링크 수정 => EL, JSTL 배운후
+				헤더:	<%@ include file="header.jsp" %>
+				푸터:	<%@ include file="footer.jsp" %>
+				path:<%@ include file="setting.jsp" %> => EL, JSTL 배운후
+
+실행: http://localhost/jsp_pj_126/common/main.jsp
+	=> 헤더/푸터 확인 /이미지 확인
+	
+main.jps 복사해서 sample.jsp로 붙여넣는다. header, footer 경로 수정
+
+===========================================================
+
+6. customer > login > login.jsp loginAction.jsp
+login.html, loginAction.html 복사해서 jsp에 붙여넣고, header, footer include시킨다. css 경로 수정
+
+7. customer > join > join.jsp joinAction.jsp
+join.html, joinAction.html 복사해서 jsp에 붙여넣고, header, footer include시킨다. css 경로 수정
+
+===========================================================
+
+[ BACKEND : Java Resources  > src > 기본 패키지: pj.mvc.jsp]
+1. DTO - pj.mvc.jsp.dto
+	CustomerDTO.java
+	계정생성(8번) -> 테이블생성(9번) -> CustomerDTO 멤버변수, setter /getter
+	
+	
+2. CONTROLLER - pj.mvc.jsp.controller
+	new Servlet > CustomerController.java
+	
+	@WebServlet("*.do") <= 진입시.do인 요청만 받겠다는 의미, 반드시 do가 아니어도 됨,
+		customer : *.do | admin : *.ad =>
+		
+3.common/setting.jsp => path 설정 => 모든 jsp페이지에서 include시키고 ${path}
+                                 : css, header.jsp에서 반영	
+                                 
+실행 => http://localhost/jsp_pj_126/*.do
+   => 실행안되는 경우 setting.jsp 에러가 있거나, jar 파일이 없거나, header.jsp에서 잘못준경우
+   	
+
+4. Service /ServiceImpl - pj.mvc.jsp.service
+	CustomerService.java : 인터페이스
+	CustomerServiceImpl.java : 인터페이스 구현
+
+
+5. DAO /DAOImpl - pj.mvc.jsp.dao
+	CustomerDAO.java : 인터페이스
+	CustomerDAOImpl.java  : 인터페이스 구현
+
+	
+============================================================
+
+8.jsp_pj_126 계정 생성 => [시스템 계정(System126)에서 작업]
+--- 1. 계정생성 : jsp_pj_126 계정생성
+-- create user <계정이름> identified by <계정암호> default tablespace users;
+   create user jsp_pj_126 identified by tiger default tablespace users;
+
+  -- 2. 사용자 권한 부여
+  -- grant [시스템 권한] to [계정];
+   grant connect, resource to jsp_pj_126;
+   grant create view to jsp_pj_126;
+   
+ --  권한취소
+ -- revoke [시스템 권한] from [계정];
+    revoke create view from jsp_pj_126;
+   
+--  grant connect, resource,create view to scott;   
+-- 3. 락 해제
+-- alter user <계정이름> account unlock;
+   alter user jsp_pj_126 account unlock;
+ 
+-- 실행결과   
+--User SCOTT이(가) 생성되었습니다.
+--Grant을(를) 성공했습니다.
+--User SCOTT이(가) 변경되었습니다.
+
+==================================================================
+
+9. 테이블생성
+-- jsp_pj_126 계정에서 작업
+
+DROP TABLE  mvc_customer_tbl CASCADE  CONSTRAINTS;
+CREATE TABLE mvc_customer_tbl(
+    id            VARCHAR2(20) PRIMARY KEY,   -- ID
+    password      VARCHAR2(20) NOT NULL,      -- 비밀번호
+    name          varchar2(20) NOT NULL,      -- 이름
+    birthday      DATE         NOT NULL,      -- 생년월일
+    address       VARCHAR2(50) NOT NULL,      -- 주소
+    hp            VARCHAR2(13),               -- 핸드폰
+    email         VARCHAR2(50) NOT NULL,      -- 이메일
+    regDate       TIMESTAMP DEFAULT sysdate   -- 가입일
+);
+-- Table MVC_CUSTOMER_TBL이(가) 생성되었습니다.
+
+10. 커넥션풀(DBCP :DataBase Connection Pool방식) => Servers > Tomcat > context.xml
+= 톰캣 재설치시 추가해야 하며, 안하면 DB연결이 안된다.
+
+ <!-- jsp_pj_126 / jsp mvc 수업 /name이 식별자이므로 중복되면 에러 -->
+	<Resource
+		author ="Container"
+		name="jdbc/jsp_pj_126"
+		type="javax.sql.DataSource"
+		driverClassName="oracle.jdbc.driver.OracleDriver"
+		url="jdbc:oracle:thin:@localhost:1521:xe"
+		username="jsp_pj_126"
+		password="tiger"
+		maxActive="5"
+		maxWait="1000"
+	 />
+	 
+===========================================================================
+11. 기존 jsp파일을 old 폴더에 백업
+12. EL, JSTL을 화면에 반영

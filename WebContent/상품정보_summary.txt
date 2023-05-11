@@ -1,0 +1,317 @@
+< customer에서 1~5번 작업함   >
+
+1. jsp_pj_126 플젝 생성 : new > Dynamic Web Project > Generate web.xml 체크
+2. jar 파일 추가 : WEB-INF/lib/  5개 jar파일 추가
+
+======= html_pj_126(화면설계 버전) => JSP MVC 패턴 개발 버전  ================
+
+3. 각각의 폴더, jsp 파일을 생성후 각각의 html 소스를 붙여넣는다.
+WebContent(루트)
+
+/admin
+/common / 
+/customer / board, join, login, mypage, product
+/resources => 폴더 복사해서 붙여넣기 / css, images, js
+/템플릿
+
+
+4. 템플릿> sample.html 소스의 헤더, 푸터를 잘라서 include(header.jsp, footer.jsp)
+common > header.jsp 단 <%@ page > 지시자 추가
+common > footer.jsp
+common > setting.jsp => path 설정 => EL, JSTL 배운후     
+
+5. main.jsp
+common > main.jsp => main.html 복사해서 메뉴링크 수정  =>  EL, JSTL 배운후         
+                     헤더 : <%@ include file="header.jsp" %>
+                     푸터 : <%@ include file="footer.jsp" %>
+           path : <%@ include file="setting.jsp" %> => EL, JSTL 배운후       
+           
+           
+실행 : http://localhost/jsp_pj_126/common/main.jsp
+  => 헤더/ 푸터 확인/ 이미지 확인            
+  
+main.jsp 복사해서 템플릿 > sample.jsp로 붙여넣는다. header, footer 경로 수정
+< 공통 End  >
+==================================================================
+
+
+
+6. admin> ad_product > ad_product_list.jsp
+
+- ad_productList.html 복사해서 <%@page> 지시자 아래에 jsp에 붙여넣고, 
+- header, footer, leftMenu 분리시킨후 include시킨다.
+- 본문 내용 수정
+
+- 일단 ad_product_list.jsp 페이지 실행해서 메뉴, 이미지 문제 없는지 확인
+===================================================================
+
+
+[ BACKEND : Java Resources > src > 기본 패키지 : pj.mvc.jsp ]
+
+1. DTO - pj.mvc.jsp.dto
+   ProductDTO.java
+   계정생성(아래 8번) -> 테이블생성(아래 9번) -> ProductDTO 멤버변수, setter / getter
+   
+------   
+
+2. CONTROLLER - pj.mvc.jsp.controller
+   new Servlet > ProductController.java
+   
+   @WebServlet("*.bo") <= 진입시 .do인 요청만 받겠다는 의미, 반드시 do가 아니어도 됨, 
+        customer : *.do   |  admin : *.ad  =>  |   product : *.pd
+    주의사항 : 중복되면 안됨    
+        
+3. common/setting.jsp => path 설정 => 모든 jsp페이지에서 include시키고 ${path}
+                                 : css, header.jsp에서 반영         
+
+실행 => http://localhost/jsp_pj_126/*.pd  
+   => 실행안되는 경우 setting.jsp 에러가 있거나, jar 파일이 없거나, header.jsp에서 잘못준경우
+   
+      또는 url.equsls(잘못준경우) / @WebServlet("잘못준 경우")
+
+---------------------------------------
+
+4. Service / ServiceImpl  -  pj.mvc.jsp.service
+   ProductService.java : 인터페이스 
+   ProductServiceImpl.java : 인터페이스 구현
+
+5. DAO / DAOImpl -  pj.mvc.jsp.dao
+   ProductDAO.java : 인터페이스
+   ProductDAOImpl.java : 인터페이스 구현
+   
+   싱글톤, context.xml lookup
+   
+   
+6. 상품 목록
+
+-- 상품 입력(1건)
+
+7. ---------------------- [ 상품 등록 ] -------------------------
+ad_product_list.jsp 복사해서 ad_product_add.jsp에 붙여넣고
+우측 내용 시작~종료 붙여넣기
+
+<link rel="stylesheet" href="${path}/resources/css/admin/ad_productAdd.css">
+
+
+1) ProductController.java
+@MultipartConfig(location="D:\\Dev126\\workspace\\jsp_pj_126\\WebContent\\resources\\upload",
+fileSizeThreshold=1024*1024, maxFileSize=1024*1024*5, maxRequestSize=1024*1024*5*5)
+public class ProductController extends HttpServlet {
+   private static final String IMG_UPLOAD_DIR="D:\\Dev126\\workspace\\jsp_pj_126\\WebContent\\resources\\upload";
+ }
+
+2) ad_product_add.jsp
+2-1) form에 enctype="multipart/form-data" 반드시 추가
+<form action="${path}/ad_product_addAction.pd" enctype="multipart/form-data">
+
+2-2) accept="image/*" 반드시 추가
+<td><input type="file" class="input" id="pdImg" name="pdImg" accept="image/*"></td>
+
+3) util/ImageUploadHandler 작성
+// 전체 이미지 경로에서 파일명을 잘라와서 setAttribute로 전달
+req.setAttribute("fileName", fileName);
+
+
+4) ProductServiceImpl
+   String p_img1 = "/jsp_pj_126/resources/upload/" + req.getAttribute("fileName"); // 플젝명/upload 경로/파일명
+   System.out.println("dto.getPdImg() : " + p_img1);
+   dto.setPdImg(p_img1);
+   
+5) ProductController.java   
+   // 상품등록 처리
+   if(url.equals("/ad_product_addAction.pd")) {
+      System.out.println("[url => /ad_product_addAction.pd]");
+      
+      // 추가 : 서비스 호출전에 추가      
+      String contentType = req.getContentType();
+      if(contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+         uploader = new ImageUploadHandler();
+         uploader.setUploadPath(IMG_UPLOAD_DIR); // img 경로
+         uploader.imageUpload(req, res);
+      }
+      // 추가 ------
+      
+      service.ProductAddAction(req, res);
+      
+      
+      viewPage = "admin/ad_product/ad_product_addAction.jsp";
+   }
+   
+6) 정상적으로 상품등록시 upload 폴더에 이미지가 등록됨
+SELECT * FROM MVC_PRODUCT_TBL;
+
+1   트롬세탁기   LG   /jsp_pj_126/resources/upload/트롬세탁기.jpg   생활가전   무소음,빠른세탁   770000   5   판매중   2023-03-06 16:07:46.000
+
+
+7) 상품등록 로그
+
+[url => /ad_product_add.pd]
+[url => /ad_product_addAction.pd]
+form-data; name="pdBrand"
+form-data; name="pdName"
+form-data; name="pdImg"; filename="트롬세탁기.jpg"
+content :  filename="트롬세탁기.jpg"
+fileName : 트롬세탁기.jpg
+form-data; name="pdCategory"
+form-data; name="pdContent"
+form-data; name="pdPrice"
+form-data; name="pdQuantity"
+form-data; name="pdStatus"
+서비스 - ProductAddAction()
+dto.getPdImg() : /jsp_pj_126/resources/upload/트롬세탁기.jpg
+DAO - productInsert
+SQL insertCnt => 1
+
+
+
+---------------------- [ 상품 목록 ] -------------------------
+8) < ad_product_list.jsp >
+<td><img src="${dto.pdImg}" width="100"></td> <!-- upload 폴더를 새로고침, 브라우저도 새로고침해야 깨진 이미지가 보임 -->
+
+
+---------------------- [ 상품 상세페이지 ] -------------------------
+9) <ad_product_detail.jsp>   
+
+<!-- hidden : 직접 input 태그에서 입력받지 못한 값들을 전달할 때 사용 -->
+<input type="hidden" name="pageNum" value="${pageNum}">
+<input type="hidden" name="hiddenPdNo" value="${dto.pdNo}">
+<input type="hidden" name="hiddenPdImg" value="${dto.pdImg}"> <!-- 수정전 상품이미지 -->   
+
+<tr>
+   <th>* 상품이미지</th>
+   <td><img src="${dto.pdImg}" width="80px"><br>
+      <input type="file" class="input" id="pdImg" name="pdImg" accept="image/*">
+   </td>
+</tr>
+      
+      
+---------------------- [ 상품 수정 ] -------------------------
+
+10-1) ProductController.java
+   // 상품수정 처리
+   else if(url.equals("/ad_product_updateAction.pd")) {
+      System.out.println("[url => /ad_product_updateAction.pd]");
+      
+      // 추가 : 서비스 호출전에 추가   
+      String contentType = req.getContentType();
+      if(contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+         uploader = new ImageUploadHandler();
+         uploader.setUploadPath(IMG_UPLOAD_DIR); // img 경로
+         uploader.imageUpload(req, res);
+      }
+               
+      service.ProductUpdateAction(req, res);
+      viewPage = "admin/ad_product/ad_product_updateAction.jsp";
+   }
+   
+   
+10-2) 서비스 ProductUpdateAction.java
+
+// 3단계. 화면으로부터 입력받은 값을 받는다.
+   // 화면값 받아오기(hidden값)
+   int pageNum = Integer.parseInt(req.getParameter("pageNum"));
+   int hiddenPdNo = Integer.parseInt(req.getParameter("hiddenPdNo"));
+   String hiddenPdImg = req.getParameter("hiddenPdImg");     // 기존이미지
+   String uploadPdImg = (String)req.getAttribute("fileName");  // upload 파일명
+   
+   System.out.println("hiddenPdImg : " + hiddenPdImg);
+   System.out.println("uploadPdImg : " + uploadPdImg);
+   
+   ProductDTO dto = new ProductDTO();
+   dto.setPdNo(hiddenPdNo);
+   dto.setPdName(req.getParameter("pdName"));
+   dto.setPdBrand(req.getParameter("pdBrand"));
+   
+   String strPdImg = "";
+   // 이미지를 수정하지 않았을 때
+   if(uploadPdImg == null) {
+      strPdImg = hiddenPdImg;
+   }      
+   // 이미지를 수정했을 때
+   else {
+      strPdImg = "/jsp_pj_126/resources/upload/" + uploadPdImg;
+   }
+   System.out.println("이미지 => " + strPdImg);   
+   dto.setPdImg(strPdImg);               
+
+                        
+///////////////////////////////////////////
+   
+6-3. SQL문
+
+
+
+   
+///////////////////////////////////////////////
+
+8. jsp_pj_126 계정 생성 => [시스템 계정(System126)에서 작업]  => DBeaver에서 작업후 F5하면 자동계정생성
+--- 1. 계정생성 : jsp_pj_126 계정생성
+-- create user <계정이름> identified by <계정암호> default tablespace users;
+   create user jsp_pj_126 identified by tiger default tablespace users;
+
+  -- 2. 사용자 권한 부여
+  -- grant [시스템 권한] to [계정];
+   grant connect, resource to jsp_pj_126;
+   grant create view to jsp_pj_126;
+   
+ --  권한취소
+ -- revoke [시스템 권한] from [계정];
+ -- revoke create view from jsp_pj_126;
+   
+--  grant connect, resource,create view to scott;   
+-- 3. 락 해제
+-- alter user <계정이름> account unlock;
+   alter user jsp_pj_126 account unlock;
+ 
+-- 실행결과   
+--User SCOTT이(가) 생성되었습니다.
+--Grant을(를) 성공했습니다.
+--User SCOTT이(가) 변경되었습니다.
+   
+
+
+-----------------------------------------------
+
+9. 테이블생성
+-- jsp_pj_126 계정에서 작업
+
+-- 3) 상품정보
+DROP TABLE mvc_product_tbl CASCADE CONSTRAINTS;
+CREATE TABLE mvc_product_tbl(
+   pdNo         NUMBER(7)    PRIMARY KEY,       -- 상품번호
+   pdName         VARCHAR2(50) NOT NULL UNIQUE,   -- 상품명
+   pdBrand         VARCHAR2(50) NOT NULL,         -- 상품브랜드
+   pdImg         VARCHAR2(100) NOT NULL,         -- 상품이미지
+   pdCategory      VARCHAR2(50) NOT NULL,         -- 상품카테고리
+   pdContent      CLOB,                     -- 상품설명
+   pdPrice         NUMBER(9)   NOT NULL,         -- 상품가격
+   pdQuantity      NUMBER(9)   NOT NULL,         -- 상품등록수량
+   pdStatus        VARCHAR2(20) NOT NULL,         -- 상품상태코드
+   pdIndate        DATE   DEFAULT sysdate         -- 상품등록일
+);
+
+SELECT * FROM MVC_PRODUCT_TBL;
+
+
+-- CLOB : 대용량 텍스트 자료형
+-- BLOB : 대용량 바이너리 자료형
+
+10. 커넥션풀(DBCP: DataBase Connection Pool 방식) => Servers > Tomcat > context.xml
+=> 톰캣 재설치시 추가해야 하며, 안하면 DB연결이 안된다.
+
+ <!-- jsp_pj_126 / jsp mvc 수업 / name이 식별자이므로 중복되면 에러 -->
+    <Resource
+       author="Container"
+       name="jdbc/jsp_pj_126"
+       type="javax.sql.DataSource"
+       driverClassName="oracle.jdbc.driver.OracleDriver"       
+       url="jdbc:oracle:thin:@localhost:1521:xe"
+       username="jsp_pj_126"
+       password="tiger"
+       maxActive="5"
+       maxWait="1000"
+    />
+
+    =========================================================
+       
+   11. EL, JSTL을 화면에 반영 

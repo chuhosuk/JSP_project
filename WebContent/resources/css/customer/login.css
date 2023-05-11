@@ -1,0 +1,104 @@
+@charset "UTF-8";
+
+#container {
+   width: 100%;
+   margin: 0 auto;
+}
+
+#contents {
+   max-width: 1240px;
+   min-width: 1240px;
+   width: 100%;
+   margin: 0 auto;
+}
+
+#section1, #section2 {
+   padding: 10px 20px 20px 0;
+   border-bottom: 5px solid #B1AEB7;
+}
+
+#section3 {
+   padding: 10px 20px 20px 0;
+   border-bottom: 5px solid #B1AEB7;
+}
+
+
+#s2_inner {
+   width: 100%;
+}
+
+#s3_inner {
+   width: 100%;
+}
+
+.login {
+   display : flex; /* 한줄(수평)로 배치 */
+   justify-content: center; 
+   align-items: center;  
+   max-width: 1240px;
+   margin: 40px 10px;
+   height: auto;
+}
+
+.login2 {
+   display : flex; /* 한줄(수평)로 배치 */
+   justify-content: center; 
+   align-items: center;  
+   max-width: 1240px;
+   margin: 40px 10px;
+   height: auto;
+}
+
+.login th {
+   font-size: 15px;
+   font-weight: bold;
+   width: 120px;
+   height: 60px;
+   text-align: center;
+   padding-right: 10px;
+   padding-left: 20px;
+   border-bottom: 1px solid #ccc;
+   background: lightgray;
+   margin-right: 5px;
+}
+
+.login2 th {
+   font-size: 15px;
+   font-weight: bold;
+   width: 120px;
+   height: 60px;
+   text-align: center;
+   padding-right: 10px;
+   padding-left: 20px;
+   border-bottom: 1px solid pink;
+   background: pink;
+   margin-right: 5px;
+}
+
+.login td {
+   padding: 10px 0 10px 10px;
+   border-bottom: 1px solid #ccc;
+}
+
+.login2 td {
+   padding: 10px 0 10px 10px;
+   border-bottom: 1px solid #ccc;
+}
+
+input {
+   padding: 5px 5px; 
+}
+
+.input {
+   width: 500px;
+   height: 40px;
+   border: 1px solid gray;
+   box-sizing: border-box;
+   padding: 0 0 0 10px;
+}
+
+.inputButton{
+	background-color: lightgray;
+	font-size: 16px;
+	padding: 10px 15px 10px 15px;
+}

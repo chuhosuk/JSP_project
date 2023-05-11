@@ -1,0 +1,95 @@
+@charset "UTF-8";
+
+/* admin.css */
+#container {
+   width: 100%;
+   margin: 0 auto;
+}
+
+#contents {
+   max-width: 1240px;
+   min-width: 1240px;
+   width: 100%;
+   margin: 0 auto;
+   min-height: 800px;
+}
+
+#section2{
+   display : flex;
+   justify-content: space-between;
+}
+
+
+<!-- 좌측메뉴 시작 -->
+#left{
+   width: 25%;
+   margin-top: 20px;
+   height: 140%;
+   border-radius: 15px;
+   margin-right: 0px;
+}
+
+.left_inside{
+   background: lightgray;
+   margin: 0 0 0 0;
+   border-radius: 10px;
+   padding: 10px;
+   box-shadow: 10px 10px 10px 10px rgba(0, 0, 0,0.2);
+   text-align-list: center;
+}
+
+.menubarLeft{
+   margin-left: 0px;
+}
+
+.menubarLeft li{
+   list-style: none;
+   align: left;
+}
+
+.menubarLeft li a{
+   color: black;
+   text-decoration: none;
+}
+
+
+<!-- 우측 내용 시작 -->
+#right{
+   width: 88%;
+}
+
+.table_div{
+   margin-top: 30px;
+}
+
+.table_div table {
+   border-collapse: collapse;
+   width: 1000px;
+   align: center;
+}
+
+.table_div table th {
+   background: lightgrey;
+}
+
+.table_div table th, td {
+   height: 50px;
+   border: 1px solid black;
+   padding-left: 10px;
+   text-align: center;
+}
+.inputButton{
+	background-color: dark-yellow;
+	font-size: 16px;
+	padding: 10px 15px 10px 15px;
+}
+input {
+	padding: 2px 2px;
+}
+
+.input {
+	width: 576px;
+	height: 40px;
+	border: 1px solid gray;
+	padding: 0 0 0 10px;
+}
